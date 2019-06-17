@@ -24,6 +24,8 @@ void AcousticRun3d(Mesh *mesh, double FinalTime, double dt){
   double *presEA = (double*) calloc(mesh->K*p_Np, sizeof(double));
 
   double * presRecvPoint = (double*) calloc(Nsteps, sizeof(double));
+  int kEA = 4000; /* [EA] Choose element of receiver point */
+  int nEA = 0; /* [EA] Choose point in that element to be receiver point*/
   #endif
   
   /* outer time step loop  */
@@ -53,8 +55,6 @@ void AcousticRun3d(Mesh *mesh, double FinalTime, double dt){
     #if 0
     gpu_get_data3d(mesh->K, velXEA, velYEA, velZEA, presEA);
    
-    int nEA = 0;
-    int kEA = 4000;
     int idEA = nEA + p_Np*kEA;
     presRecvPoint[tstep] = presEA[idEA];
     #endif
@@ -83,6 +83,7 @@ void AcousticRun3d(Mesh *mesh, double FinalTime, double dt){
 
 
   FILE * fileEA = fopen("data/presRecvPoint.txt","w");
+  fprintf(fileEA,"%.15lf %.15lf %.15lf\n",mesh->x[kEA][nEA],mesh->y[kEA][nEA],mesh->z[kEA][nEA]);
   for(int i = 0; i < Nsteps; i++){
     fprintf(fileEA, "%.15lf ",presRecvPoint[i]);
   }
