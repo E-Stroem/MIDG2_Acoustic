@@ -16,11 +16,11 @@ module load cuda/10.0
 rm -fr ._occa
 
 # Enviroment variables needed for occa
-export OCCA_DIR=~/MIDG2_gpu/occa
-export PATH+=:~/MIDG2_gpu/occa/bin
-export LD_LIBRARY_PATH+=:~/MIDG2_gpu/occa/lib
+export OCCA_DIR=~/MIDG2_Acoustic/occa
+export PATH+=:~/MIDG2_Acoustic/occa/bin
+export LD_LIBRARY_PATH+=:~/MIDG2_Acoustic/occa/lib
 export OCCA_CUDA_COMPILER=nvcc
-export OCCA_CACHE_DIR=~/MIDG2_gpu/._occa
+export OCCA_CACHE_DIR=~/MIDG2_Acoustic/._occa
 
 # Build project (It is important to make clean if changing N!)
 make clean
