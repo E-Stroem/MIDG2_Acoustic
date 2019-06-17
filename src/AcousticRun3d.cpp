@@ -17,7 +17,7 @@ void AcousticRun3d(Mesh *mesh, double FinalTime, double dt){
 		      double *d_velX, double *d_velY, double *d_velZ,
 		      double *d_pres);
   
-  #if 1
+  #if 0
   double *velXEA = (double*) calloc(mesh->K*p_Np, sizeof(double));
   double *velYEA = (double*) calloc(mesh->K*p_Np, sizeof(double));
   double *velZEA = (double*) calloc(mesh->K*p_Np, sizeof(double));
@@ -50,7 +50,7 @@ void AcousticRun3d(Mesh *mesh, double FinalTime, double dt){
       This will severly slow down the solver! The data has to be copied from GPU to CPU after each time-step!
      */
 
-    #if 1
+    #if 0
     gpu_get_data3d(mesh->K, velXEA, velYEA, velZEA, presEA);
    
     int nEA = 0;
@@ -75,7 +75,7 @@ void AcousticRun3d(Mesh *mesh, double FinalTime, double dt){
   
   MPI_Barrier(MPI_COMM_WORLD);
 
-  #if 1
+  #if 0
   free(velXEA);
   free(velYEA);
   free(velZEA);
