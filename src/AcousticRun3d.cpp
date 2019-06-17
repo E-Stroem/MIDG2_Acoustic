@@ -41,7 +41,7 @@ void AcousticRun3d(Mesh *mesh, double FinalTime, double dt){
       AcousticKernel3d(mesh, fa, fb, fdt);
     }
 
-    /* [EA] If the solution for every time-step is wanted this is where one would implement this. */
+    /* [EA] If the solution at receiver point for every time-step is wanted this is where one would implement this. */
     /* [EA]
       gpu_get_data3d(mesh->K, velXEA, velYEA, velZEA, presEA); to get velX, velY, velZ and pres. 
       These are all 1D arrays with (K x Np). 
@@ -50,6 +50,24 @@ void AcousticRun3d(Mesh *mesh, double FinalTime, double dt){
       
       Note:
       This will severly slow down the solver! The data has to be copied from GPU to CPU after each time-step!
+      
+      
+      Pseudo-code for receiver point:
+      REQUIRE TO BE COMPUTED EARLIER: 
+       	- k_Recv(Element containing receiver point)
+        - PointWiseInterpolator (Vector containing basis functions for interpolation)
+      
+      1) Transfer from GPU to CPU:
+      gpu_get_data3d(mesh->K, velXEA, velYEA, velZEA, presEA); 
+      
+      2) Interpolate:
+      interpolatedPoint = 0
+      for n = 1:p_Np
+      	int idEA = n + p_Np*k_Recv;
+      	interpolatedPoint += PointWiseInterpolator[n]*presEA[idEA]
+      end
+      3) Save interpolated point for time-step tstep:
+      presRecvPoint[tstep] = interpolatedPoint
      */
 
     #if 0
