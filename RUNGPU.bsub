@@ -24,7 +24,7 @@ export OCCA_CACHE_DIR=~/MIDG2_gpu/._occa
 
 # Build project (It is important to make clean if changing N!)
 make clean
-CXX=mpic++ make N=6
+CXX=mpic++ make N=4
 
 # Run solver
-mpirun -n 1 ./main Meshes/cubeTet_L01_12.neu
+mpirun -n 1 ./main Meshes/cubeTet_L01_5.neu
