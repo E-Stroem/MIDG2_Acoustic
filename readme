@@ -1,0 +1,45 @@
+# ------------------------------------------------------------------------
+# see the copyright information for MIDG in license.midg
+# MIDG: a MIni Discontinuous Galerkin solver for CPUs or GPUS with MPI parallelism
+# Copyright (c) 2014, Tim Warburton
+# http://www.nudg.org
+# ------------------------------------------------------------------------
+
+# to get occa (do this in the directory containing MIDG2)
+git clone https://github.com/libocca/occa
+
+# change to occa directory
+cd occa
+
+# environment variable pointing to the occa directory
+# [ for convenience add this to your .bashrc: export OCCA_DIR=yourOccaPath ]
+export OCCA_DIR=`pwd`
+
+# build occa
+make -j 8
+
+# change to MIDG2 directory
+cd ..
+
+# to build the ParMETIS dependency
+cd 3rdParty
+tar -zxvf parmetis-4.0.3.tar.gz
+cd parmetis-4.0.3
+make config
+make
+
+# to copy libraries into expected directory 
+find . -name lib\*.a -exec cp {} ../../lib \;
+
+# change to MIDG2 directory
+cd ../../
+
+# to clean build MIDG2
+make clean
+
+# to build using mpic++ as the compiler and degree 8 elements
+CXX=mpic++ make N=8
+
+# to run with one process on test mesh (bi-unit cube)
+mpiexec -n 1  ./main Meshes/F072.neu
+

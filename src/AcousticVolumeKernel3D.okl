@@ -1,0 +1,82 @@
+
+kernel void AcousticVolumeKernel3D(const int K,
+				   const float  * restrict g_vgeo,
+				   const float4 * restrict g_DrDsDt,
+				   const float  * restrict g_Q,
+				   float * restrict g_rhsQ){
+  
+  for(int k=0;k<K;++k;outer0){
+    
+    shared float s_Q[p_Nfields*BSIZE];
+    shared float s_facs[12];
+    
+    for(int n=0;n<p_Np;++n;inner0){
+      
+      int m = n+k*p_Nfields*BSIZE;
+      int id = n;
+
+      s_Q[id] = g_Q[m]; m+=BSIZE; id+=BSIZE;
+      s_Q[id] = g_Q[m]; m+=BSIZE; id+=BSIZE;
+      s_Q[id] = g_Q[m]; m+=BSIZE; id+=BSIZE;
+      s_Q[id] = g_Q[m]; 
+      
+      m = n;
+      id = 12*k+n;
+      while(m<12){
+	s_facs[m] = g_vgeo[id];
+	id += occaInnerDim0;
+	m  += occaInnerDim0;
+      }
+    }
+    
+    barrier(localMemFence);
+    
+    for(int n=0;n<p_Np;++n;inner0){
+
+      int m, id;
+      
+      float dvelXdr=0,dvelXds=0,dvelXdt=0;
+      float dvelYdr=0,dvelYds=0,dvelYdt=0;
+      float dvelZdr=0,dvelZds=0,dvelZdt=0;
+      float dpresdr=0,dpresds=0,dpresdt=0;
+      float Q;
+
+      for(m=0;m<p_Np;++m){
+	float4 D = g_DrDsDt[n+m*BSIZE];
+	/* [EA] Differentiate velocity and pressure on reference element*/
+	id = m;
+	Q = s_Q[id]; dvelXdr += D.x*Q; dvelXds += D.y*Q; dvelXdt += D.z*Q; id += BSIZE;
+	Q = s_Q[id]; dvelYdr += D.x*Q; dvelYds += D.y*Q; dvelYdt += D.z*Q; id += BSIZE;
+	Q = s_Q[id]; dvelZdr += D.x*Q; dvelZds += D.y*Q; dvelZdt += D.z*Q; id += BSIZE;
+	Q = s_Q[id]; dpresdr += D.x*Q; dpresds += D.y*Q; dpresdt += D.z*Q;
+
+      }
+      
+      const float drdx= s_facs[0];
+      const float drdy= s_facs[1];
+      const float drdz= s_facs[2];
+      const float dsdx= s_facs[4];
+      const float dsdy= s_facs[5];
+      const float dsdz= s_facs[6];
+      const float dtdx= s_facs[8];
+      const float dtdy= s_facs[9];
+      const float dtdz= s_facs[10];
+      
+      m = n+p_Nfields*BSIZE*k;
+      
+      /* [EA] Evaluate gradient of pressure and map to (x,y,z)*/
+      // vel - grad
+      g_rhsQ[m] = -(drdx*dpresdr + dsdx*dpresds + dtdx*dpresdt); m += BSIZE;
+      g_rhsQ[m] = -(drdy*dpresdr + dsdy*dpresds + dtdy*dpresdt); m += BSIZE;
+      g_rhsQ[m] = -(drdz*dpresdr + dsdz*dpresds + dtdz*dpresdt); m += BSIZE;
+      
+      /* [EA] Evaluate divergence of velocity and map to (x,y,z)*/
+      // pres - div
+      g_rhsQ[m] =  -(drdx*dvelXdr + dsdx*dvelXds + dtdx*dvelXdt);
+      g_rhsQ[m] -=  (drdy*dvelYdr + dsdy*dvelYds + dtdy*dvelYdt);
+      g_rhsQ[m] -=  (drdz*dvelZdr + dsdz*dvelZds + dtdz*dvelZdt);
+
+      
+    }
+  }
+}
